@@ -1,0 +1,56 @@
+  //  import { createApp, computed, ref, onMounted } from 'vue'
+    const { createApp, computed, ref, onMounted } = Vue // This is how to import libraries, like on the commented lines
+  	const freeGames = () => {  //This object encompassed the app setup
+      // These consts are the redeclaration of data() using the Options API
+    const items = ref([]) // ref)= gives reactivity, No  need to use 'this'.
+    const noOpRel = 'nofollow noindex noopener'
+    const blankTarget = '_blank'
+    const selected = ref('selected')
+
+    onMounted(async () => { // This replaces mounted:
+
+        try {  // try and catch replace then(response) and then(error)
+
+          //const response = await fetch('/wp-content/uploads/vue/juegos/assets/apostala_spanish_ARS_slug.json')
+          const response = await fetch('https://api.baserow.io/api/database/rows/table/319658/?user_field_names=true',
+            {headers: {Authorization: 'Token 3zcrzASew8zFILam5PlrLKylUEygWKx4'}})
+          const res = await response.json()
+          let nextPage = res.next
+          items.value = res.results
+          let count = 1
+          while (nextPage) {
+            count++
+            let fetchUrl = 'https://api.baserow.io/api/database/rows/table/319658/?user_field_names=true&page=' + count.toString()
+            let nresponse = await fetch(fetchUrl,{headers: {Authorization: 'Token 3zcrzASew8zFILam5PlrLKylUEygWKx4'}})
+            let next_ = await nresponse.json()
+            items.value = [...items.value, ...next_.results]
+            //console.log('Results are  '+ items.value.length);
+            nextPage = next_.next
+          }
+          console.log(items.value)
+        } catch (error) {
+          console.log(error)
+        }
+    })
+
+    const numberItems = computed(()=> items.value.filter((item) => (item.Name[0] < 'A')))
+
+    const agItems = computed(()=> items.value.filter((item) => (item.Name[0] >= 'A') && (item.Name[0] <= 'G')))
+
+    const hmItems = computed(()=> items.value.filter((item) => (item.Name[0] >= 'H') && (item.Name[0] <= 'M')))
+
+    const nqItems = computed(()=> items.value.filter((item) => (item.Name[0] >= 'N') && (item.Name[0] <= 'Q')))
+
+    const rzItems = computed(()=> items.value.filter((item) => (item.Name[0] >= 'R') && (item.Name[0] <= 'Z')))
+
+    // Here we finally return every element
+    return { items, noOpRel, blankTarget, selected, numberItems, agItems, hmItems, nqItems, rzItems }
+  }
+// Here we create app
+  const app = createApp({
+    setup() {
+      const games = freeGames()
+      return { ...games }
+    }
+  })
+  app.mount('#app')
